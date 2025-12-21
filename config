@@ -1,0 +1,191 @@
+#! /bin/bash
+
+
+# Podstawowe zmienne konfiguracyjne systemu PhantomOS
+export VERSION="1"
+export SYSTEM_DESC="PhantomOS Linux"
+export SYSTEM_NAME="phantomos"
+export ARCHIVE_DATE=$(date -d 'yesterday' +%Y/%m/%d)
+export WEBSITE="https://phantomos.github.io/"
+export DOCUMENTATION="https://phantomos.github.io/docs/"
+export BUG_REPORT_URL="https://github.com/phantomos/phantomos/issues"
+
+export KERNEL_PACKAGE="linux"
+
+# Pakiety do zainstalowania w systemie podstawowym (z archa)
+export PACKAGES="\
+	accountsservice \
+	acpi_call-dkms \
+	acsccid \
+	alsa-firmware \
+	alsa-utils \
+	amd-debug-tools \
+	amd-ucode \
+	bash-completion \
+	broadcom-wl-dkms \
+	bzip2 \
+	cifs-utils \
+	cpupower \
+	diffutils \
+	dkms \
+	distrobox \
+	dmidecode \
+	dosbox \
+    refind \
+	efibootmgr \
+	epiphany \
+	ethtool \
+	evtest \
+	fakeroot \
+	ffmpeg \
+	file \
+	ffmpegthumbnailer \
+	firejail \
+	flatpak \
+	fmt \
+	fuse-zip \
+	fuse2 \
+	fwupd \
+	gamescope \
+	git \
+	plasma-meta \
+	gst-plugin-pipewire \
+	gvfs-smb \
+	gvfs-nfs \
+	gzip \
+	htop \
+	intel-gpu-tools \
+	inputplumber \
+	intel-media-driver \
+	intel-ucode \
+	intel-undervolt \
+	less \
+	lib32-curl \
+	lib32-fontconfig \
+	lib32-freetype2 \
+	lib32-libgpg-error \
+	lib32-libnm \
+	lib32-libxinerama \
+	lib32-libxcrypt-compat \
+	lib32-mangohud \
+	lib32-openal \
+	lib32-pipewire \
+	lib32-sdl2 \
+	lib32-systemd \
+	lib32-vulkan-icd-loader \
+	libnfc \
+	libretro-beetle-pce-fast \
+	libretro-beetle-psx-hw \
+	libretro-desmume \
+	libretro-dolphin \
+	libretro-flycast \
+	libretro-genesis-plus-gx \
+	libretro-kronos \
+	libretro-mame \
+	libretro-mesen-s \
+	libretro-mgba \
+	libretro-mupen64plus-next \
+	libretro-nestopia \
+	libretro-picodrive \
+	libretro-ppsspp \
+	libretro-snes9x \
+	libxcrypt-compat \
+	libxss \
+    sddm \
+	linux-firmware \
+	liquidctl \
+	logrotate \
+	lrzip \
+	loupe \
+	lshw \
+	mangohud \
+	modemmanager \
+	nano \
+	nautilus \
+	networkmanager \
+	nfs-utils \
+	noto-fonts-emoji \
+	nss-mdns \
+	nvidia-open-dkms \
+	opencl-nvidia \
+	lib32-opencl-nvidia \
+	nvidia-utils \
+	lib32-nvidia-utils \
+	nvidia-prime \
+	openal \
+	openrazer-daemon \
+	openssh \
+	p7zip \
+	pipewire \
+	pipewire-alsa \
+	pipewire-jack \
+	pipewire-pulse \
+	podman \
+	pulsemixer \
+	python \
+	python-notify2 \
+	python-pyscard \
+	qtractor \
+	retroarch \
+	rsync \
+	smbclient \
+	sof-firmware \
+	sshfs \
+	steam \
+	sudo \
+	tar \
+	tree \
+	ttf-liberation \
+	unace \
+	unrar \
+	unzip \
+	usb_modeswitch \
+	usbutils \
+	vim \
+	vulkan-icd-loader \
+	wavpack \
+	wget \
+	which \
+	wireplumber \
+	wireless-regdb \
+	wqy-zenhei \
+	xdg-desktop-portal \
+	xdg-desktop-portal-wlr \
+	xdg-user-dirs-gtk \
+	xf86-video-amdgpu \
+	xorg-server \
+	xz \
+	zip \
+"
+
+export SERVICES="\
+	NetworkManager \
+	avahi-daemon \
+	bluetooth \
+	bluetooth-workaround \
+	fstrim.timer \
+	home-swapfile.swap \
+	sddm \
+	sshd \
+	systemd-timesyncd \
+	swapfile \
+"
+
+export USER_SERVICES="\
+	pipewire \
+"
+export FILES_TO_DELETE="\
+	/boot/initramfs-linux-fallback.img \
+	/boot/initramfs-linux.img \
+	/usr/share/SFML \
+	/usr/share/doc \
+	/usr/share/gtk-doc \
+	/usr/share/help \
+	/usr/share/man \
+	/usr/share/nvidia/nvoptix.bin \
+	/usr/lib/libnvoptix.so* \
+"
+
+postinstallhook() {
+    sed -i '/%wheel ALL=(ALL:ALL) ALL/s/^# //g' /etc/sudoers
+}
