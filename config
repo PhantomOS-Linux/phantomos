@@ -9,6 +9,7 @@ export ARCHIVE_DATE=$(date -d 'yesterday' +%Y/%m/%d)
 export WEBSITE="https://phantomos.github.io/"
 export DOCUMENTATION="https://phantomos.github.io/docs/"
 export BUG_REPORT_URL="https://github.com/phantomos/phantomos/issues"
+export SIZE="12000MB"
 
 export KERNEL_PACKAGE="linux"
 
