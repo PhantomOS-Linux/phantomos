@@ -1,0 +1,24 @@
+name: System image build
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build-docker-image:
+    name: Build and publish docker container
+    uses: ./.github/workflows/build-builder.yml
+
+  build:
+    needs:
+      - build-docker-image
+    name: Build PhantomOS Linux UNSTABLE image
+    uses: ./.github/workflows/build-system-image.yml
+    with:
+      postfix: "[UNSTABLE]"

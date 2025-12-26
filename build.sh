@@ -121,7 +121,7 @@ arch-chroot ${BUILD_PATH} /bin/bash << EOF
 
     postinstallhook
 
-    pacman -Q > /manifest
+    pacman -Q > /config
 
     mkdir -p /usr/var/lib/pacman
     cp -r /var/lib/pacman/local /usr/var/lib/pacman/
@@ -173,15 +173,18 @@ rm -rf ${BUILD_IMG}
 
 IMG_FILENAME="${SYSTEM_NAME}-${VERSION}.img.tar.xz"
 if [ -z "${NO_COMPRESS}" ]; then
-	tar -c -I'xz -8 -T4' -f ${IMG_FILENAME} ${SYSTEM_NAME}-${VERSION}.img
+    # Kompresja obrazu do pliku .tar.xz
+    tar -c -I'xz -8 -T4' -f ${IMG_FILENAME} ${SYSTEM_NAME}-${VERSION}.img
     rm ${SYSTEM_NAME}-${VERSION}.img
 
+    # Sprawdzenie rozmiaru skompresowanego obrazu
     ARCHIVE_SIZE_MB=$(du -m "${IMG_FILENAME}" | cut -f1)
 
+    # Jeśli rozmiar obrazu przekroczy MAX_SIZE_MB, dzielimy na części
     if [ "${ARCHIVE_SIZE_MB}" -gt "${MAX_SIZE_MB}" ]; then
         echo "Archive is ${ARCHIVE_SIZE_MB} MB, splitting into parts..."
         split -d -b ${MAX_SIZE_MB}M "${IMG_FILENAME}" "${IMG_FILENAME}.part-"
-        rm "${IMG_FILENAME}"
+        rm "${IMG_FILENAME}"  # Usuwamy oryginalny plik, zostają tylko części
         sha256sum "${IMG_FILENAME}.part-"* > sha256sum.txt
     else
         sha256sum "${IMG_FILENAME}" > sha256sum.txt
@@ -189,28 +192,46 @@ if [ -z "${NO_COMPRESS}" ]; then
 
     cat sha256sum.txt
 
+    # Move the image (or parts) to the output directory, if one was specified.
+    if [ -n "${OUTPUT_DIR}" ]; then
+        mkdir -p "${OUTPUT_DIR}"
 
-	# Move the image to the output directory, if one was specified.
-	if [ -n "${OUTPUT_DIR}" ]; then
-		mkdir -p "${OUTPUT_DIR}"
-		mv ${IMG_FILENAME} ${OUTPUT_DIR}
-		mv build_info.txt ${OUTPUT_DIR}
-		mv sha256sum.txt ${OUTPUT_DIR}
-	fi
+        # Jeśli obraz został podzielony, przenieś wszystkie części
+        if [ "${ARCHIVE_SIZE_MB}" -gt "${MAX_SIZE_MB}" ]; then
+            mv ${IMG_FILENAME}.part-* "${OUTPUT_DIR}"
+        else
+            mv ${IMG_FILENAME} "${OUTPUT_DIR}"
+        fi
 
-	# set outputs for github actions
-	if [ -f "${GITHUB_OUTPUT}" ]; then
-		echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
-		echo "display_version=${DISPLAY_VERSION}" >> "${GITHUB_OUTPUT}"
-		echo "display_name=${SYSTEM_DESC}" >> "${GITHUB_OUTPUT}"
-		echo "image_filename=${IMG_FILENAME}" >> "${GITHUB_OUTPUT}"
-	else
-		echo "No github output file set"
-	fi
+        # Przenieś inne pliki (build_info.txt i sha256sum.txt)
+        mv build_info.txt ${OUTPUT_DIR}
+        mv sha256sum.txt ${OUTPUT_DIR}
+    fi
+
+    # set outputs for GitHub Actions
+    if [ -f "${GITHUB_OUTPUT}" ]; then
+        # W GITHUB_OUTPUT zapisujemy wszystkie części pliku obrazu
+        if [ "${ARCHIVE_SIZE_MB}" -gt "${MAX_SIZE_MB}" ]; then
+            # Zapisujemy wszystkie części w GITHUB_OUTPUT
+            for part in ${IMG_FILENAME}.part-*; do
+                echo "image_filename=${part}" >> "${GITHUB_OUTPUT}"
+            done
+        else
+            # Jeśli plik nie jest podzielony, zapisujemy tylko pełny obraz
+            echo "image_filename=${IMG_FILENAME}" >> "${GITHUB_OUTPUT}"
+        fi
+
+        # Zapisujemy inne informacje
+        echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+        echo "display_version=${DISPLAY_VERSION}" >> "${GITHUB_OUTPUT}"
+        echo "display_name=${SYSTEM_DESC}" >> "${GITHUB_OUTPUT}"
+    else
+        echo "No GitHub output file set"
+    fi
 else
-	echo "Local build, output IMG directly"
-	if [ -n "${OUTPUT_DIR}" ]; then
-		mkdir -p "${OUTPUT_DIR}"
-		mv ${SYSTEM_NAME}-${VERSION}.img ${OUTPUT_DIR}
-	fi
+    echo "Local build, output IMG directly"
+    if [ -n "${OUTPUT_DIR}" ]; then
+        mkdir -p "${OUTPUT_DIR}"
+        mv ${SYSTEM_NAME}-${VERSION}.img ${OUTPUT_DIR}
+    fi
 fi
