@@ -52,8 +52,9 @@ echo "Starting build of ${SYSTEM_DESC} ${DISPLAY_VERSION}"
 cp /etc/makepkg.conf rootfs/etc/makepkg.conf
 pacstrap -K -C rootfs/etc/pacman.conf ${BUILD_PATH}
 
-mkdir -p ${BUILD_PATH}/etc/pacman.d
+mkdir -p rootfs/etc/pacman.d
 cp /etc/pacman.d/mirrorlist rootfs/etc/pacman.d/mirrorlist
+
 cp -R config rootfs/. ${BUILD_PATH}/
 
 mount --bind ${BUILD_PATH} ${BUILD_PATH}
