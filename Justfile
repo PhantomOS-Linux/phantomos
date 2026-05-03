@@ -5,7 +5,7 @@ container_runtime := env("CONTAINER_RUNTIME", `command -v podman >/dev/null 2>&1
 
 build-image IMAGE_NAME:
     echo "Building image {{IMAGE_NAME}}:{{image_tag}} using {{container_runtime}}"
-    sudo {{container_runtime}} build -t "{{IMAGE_NAME}}:{{image_tag}}" -f Dockerfile .
+    sudo {{container_runtime}} build -t "{{IMAGE_NAME}}:{{image_tag}}" -f Containerfile .
 
 rechunk-image IMAGE_NAME:
     #!/usr/bin/bash
