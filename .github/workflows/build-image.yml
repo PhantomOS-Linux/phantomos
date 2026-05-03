@@ -111,4 +111,4 @@ jobs:
                     set -x
                     for i in $(seq "${MAX_RETRIES}"); do
                         sudo /home/linuxbrew/.linuxbrew/bin/podman push --digestfile=/tmp/digestfile "localhost/${IMAGE_NAME}:${DEFAULT_TAG}" "${IMAGE_REGISTRY}/${IMAGE_NAME}:${DEFAULT_TAG}" && break || sleep $((5 * i));
-                    fi
+                    done
