@@ -75,12 +75,12 @@ jobs:
             - name: "Build image"
               id: build
               run: |
-                sudo $(which just) build-image "$("${IMAGE_NAME}")"
+                sudo $(which just) build-image "${IMAGE_NAME}"
 
             - name: "Rechunk Image"
               id: rechunk
               run: |
-                sudo $(which just) rechunk-image "$(sed 's/-bootc//' <<< "${IMAGE_NAME}")"
+                sudo $(which just) rechunk-image "${IMAGE_NAME}"
             
             - name: "Login to GHCR"
               if: ${{ inputs.publish }}
