@@ -1,0 +1,114 @@
+---
+name: "Build Image"
+on:
+    workflow_call:
+        inputs:
+            image-name:
+                description: "The name of the image to build"
+                required: true
+                type: string
+            image-keywords:
+                description: "Tags for the image (keywords for metadata)"
+                required: true
+                type: string
+            image-desc:
+                description: "Image description"
+                required: true
+                type: string
+            platforms:
+                description: "The platforms to build the image for"
+                required: false
+                type: string
+                default: "amd64,arm64"
+            rechunk:
+                description: "Rechunk the build"
+                required: false
+                type: boolean
+                default: true
+            publish:
+                description: "Publish this image"
+                required: false
+                type: boolean
+                default: true
+            cleanup_action:
+                description: "Use cleanup action from ublue to get more storage on CI"
+                required: false
+                type: boolean
+                default: false
+        secrets:
+            SIGNING_SECRET:
+                description: "The private key used to sign the image"
+                required: false
+
+env:
+  DEFAULT_TAG: "latest"
+  IMAGE_DESC: "${{inputs.image-desc}}"
+  IMAGE_KEYWORDS: "${{inputs.image-keywords}}"
+  IMAGE_NAME: "${{ inputs.image-name }}"
+  IMAGE_REGISTRY: "ghcr.io/${{ github.repository_owner }}"
+
+jobs:
+    build-push:
+        name: "Build and Push Image"
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            packages: write
+            id-token: write
+        timeout-minutes: 60
+        steps:
+            - name: "Mount BTRFS on podman storage"
+              if: ${{ inputs.cleanup_action }}
+              uses: ublue-os/container-storage-action@911baca08baf30c8654933e9e9723cb399892140
+              with:
+                  target-dir: /var/lib/containers
+                  mount-opts: compress-force=zstd:2
+
+            - name: "Checkout code"
+              uses: aactions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+              with:
+                  submodules: true
+            
+            - name: "Setup Just"
+              uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff # v3
+
+            - name: "Build image"
+              id: build
+              run: |
+                sudo $(which just) build-image "$("${IMAGE_NAME}")"
+
+            - name: "Rechunk Image"
+              id: rechunk
+              run: |
+                sudo $(which just) rechunk-image "$(sed 's/-bootc//' <<< "${IMAGE_NAME}")"
+            
+            - name: "Login to GHCR"
+              if: ${{ inputs.publish }}
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  LOGIN_USER: ${{ github.actor }}
+              run: |
+                    echo "${GITHUB_TOKEN}" | sudo podman login -u "${LOGIN_USER}" --password-stdin "ghcr.io"
+
+            - name: "Install homebrew"
+              run: |
+                NONINTERACTIVE=1 CI=1 INTERACTIVE=0 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+            - name: "Install podman from homebrew"
+              run: |
+                echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.profile
+                eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+                brew install podman
+
+            - name: "Push image from podman homebrew to GHCR"
+              if: ${{ inputs.publish }}
+              id: push
+              env:
+                  IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
+                  IMAGE_NAME: ${{ env.IMAGE_NAME }}
+                  MAX_RETRIES: 3
+              run: |
+                    set -x
+                    for i in $(seq "${MAX_RETRIES}"); do
+                        sudo /home/linuxbrew/.linuxbrew/bin/podman push --digestfile=/tmp/digestfile "localhost/${IMAGE_NAME}:${DEFAULT_TAG}" "${IMAGE_REGISTRY}/${IMAGE_NAME}:${DEFAULT_TAG}" && break || sleep $((5 * i));
+                    fi

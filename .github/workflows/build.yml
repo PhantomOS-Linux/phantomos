@@ -1,0 +1,33 @@
+name: "Build PhantomOS Image"
+
+permissions:
+    contents: read
+    packages: write
+    id-token: write
+
+on:
+    push:
+        
+    pull_request:
+        branches:
+            - main
+    schedule:
+    - cron: "0 1 * * *"
+    merge_group:
+    workflow_dispatch:
+    
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+    build:
+        uses: ./.github/workflows/build-image.yml
+        secrets: inherit
+        with:
+            image_name: "phantomos"
+            image_desc: "PhantomOS is a Bootc Linux distribution built from Arch, designed to be minimalistic and efficient. It provides a lightweight and customizable operating system for users who want to have full control over their computing environment."
+            image_keywords: "phantomos, linux, arch, bootc, minimalistic, efficient, customizable"
+            platforms: "linux/amd64"
+            rechunk: ${{ github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+            publish: ${{ github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}

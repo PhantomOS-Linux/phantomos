@@ -1,0 +1,15 @@
+base
+dracut
+linux
+linux-firmware
+ostree
+btrfs-progs
+e2fsprogs
+xfsprogs
+dosfstools
+skopeo
+dbus
+dbus-glib
+glib2
+ostree
+shadow
