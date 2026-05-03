@@ -19,7 +19,7 @@ on:
                 description: "The platforms to build the image for"
                 required: false
                 type: string
-                default: "amd64,arm64"
+                default: "amd64"
             rechunk:
                 description: "Rechunk the build"
                 required: false
@@ -109,6 +109,9 @@ jobs:
                   MAX_RETRIES: 3
               run: |
                     set -x
+                    IMAGE_REGISTRY="${IMAGE_REGISTRY,,}"
+                    IMAGE_NAME="${IMAGE_NAME,,}"
+                    DEFAULT_TAG="${DEFAULT_TAG,,}"
                     for i in $(seq "${MAX_RETRIES}"); do
                         sudo /home/linuxbrew/.linuxbrew/bin/podman push --digestfile=/tmp/digestfile "localhost/${IMAGE_NAME}:${DEFAULT_TAG}" docker://"${IMAGE_REGISTRY}/${IMAGE_NAME}:${DEFAULT_TAG}" && break || sleep $((5 * i));
                     done
