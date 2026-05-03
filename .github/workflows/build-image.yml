@@ -92,7 +92,7 @@ jobs:
 
             - name: "Install homebrew"
               run: |
-                NONINTERACTIVE=1 CI=1 INTERACTIVE=0 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+                NONINTERACTIVE=1 CI=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
             - name: "Install podman from homebrew"
               run: |
