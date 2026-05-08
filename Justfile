@@ -14,7 +14,7 @@ rechunk-image IMAGE_NAME:
     sudo podman run --rm \
         --mount=type=image,src="{{IMAGE_NAME}}",target=/chunkah \
         -e CHUNKAH_CONFIG_STR \
-        quay.io/coreos/chunkah build --label ostree.bootable=1 --compressed --max-layers 128 | \
+        quay.io/coreos/chunkah build --label containers.bootc=1 --label ostree.bootable=1 --compressed --max-layers 128 | \
         sudo podman load | \
         sort -n | \
         head -n1 | \
