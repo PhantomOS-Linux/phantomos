@@ -16,4 +16,5 @@ os-prober
 mtools
 efibootmgr
 ostree
+squashfs-tools
 shadow
