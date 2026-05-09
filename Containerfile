@@ -29,9 +29,6 @@ COPY --from=builder-bootc /output /
 # Copy bootupd
 COPY --from=builder-bootupd /output /
 
-RUN grep "= */var" /etc/pacman.conf | sed "/= *\/var/s/.*=// ; s/ //" | xargs -n1 sh -c 'mkdir -p "/usr/lib/sysimage/$(dirname $(echo $1 | sed "s@/var/@@"))" && mv -v "$1" "/usr/lib/sysimage/$(echo "$1" | sed "s@/var/@@")"' '' && \
-    sed -i -e "/= *\/var/ s/^#//" -e "s@= */var@= /usr/lib/sysimage@g" -e "/DownloadUser/d" /etc/pacman.conf
-
 # Update system
 RUN pacman -Syu --noconfirm
 
@@ -55,6 +52,9 @@ RUN --mount=type=bind,from=ctx,source=/scripts,target=/scripts \
 # Prepare bootupd
 RUN --mount=type=bind,from=ctx,source=/scripts,target=/scripts \
     /scripts/bootupd-setup.sh
+
+RUN grep "= */var" /etc/pacman.conf | sed "/= *\/var/s/.*=// ; s/ //" | xargs -n1 sh -c 'mkdir -p "/usr/lib/sysimage/$(dirname $(echo $1 | sed "s@/var/@@"))" && mv -v "$1" "/usr/lib/sysimage/$(echo "$1" | sed "s@/var/@@")"' '' && \
+    sed -i -e "/= *\/var/ s/^#//" -e "s@= */var@= /usr/lib/sysimage@g" -e "/DownloadUser/d" /etc/pacman.conf
 
 
 # Set label to identify the image as bootc
