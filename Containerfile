@@ -29,6 +29,9 @@ COPY --from=builder-bootc /output /
 # Copy bootupd
 COPY --from=builder-bootupd /output /
 
+RUN grep "= */var" /etc/pacman.conf | sed "/= *\/var/s/.*=// ; s/ //" | xargs -n1 sh -c 'mkdir -p "/usr/lib/sysimage/$(dirname $(echo $1 | sed "s@/var/@@"))" && mv -v "$1" "/usr/lib/sysimage/$(echo "$1" | sed "s@/var/@@")"' '' && \
+    sed -i -e "/= *\/var/ s/^#//" -e "s@= */var@= /usr/lib/sysimage@g" -e "/DownloadUser/d" /etc/pacman.conf
+
 # Update system
 RUN pacman -Syu --noconfirm
 
@@ -44,17 +47,14 @@ COPY --from=rootfs / /
 RUN --mount=type=bind,from=ctx,source=/scripts,target=/scripts \
     /scripts/initramfs.sh
 
-# Prepare bootupd
-RUN --mount=type=bind,from=ctx,source=/scripts,target=/scripts \
-    /scripts/bootupd-setup.sh
-
-RUN grep "= */var" /etc/pacman.conf | sed "/= *\/var/s/.*=// ; s/ //" | xargs -n1 sh -c 'mkdir -p "/usr/lib/sysimage/$(dirname $(echo $1 | sed "s@/var/@@"))" && mv -v "$1" "/usr/lib/sysimage/$(echo "$1" | sed "s@/var/@@")"' '' && \
-    sed -i -e "/= *\/var/ s/^#//" -e "s@= */var@= /usr/lib/sysimage@g" -e "/DownloadUser/d" /etc/pacman.conf
-
 # Prepare filesystem for bootc
 RUN --mount=type=bind,from=ctx,source=/scripts,target=/scripts \
     sed -i 's|^HOME=.*|HOME=/var/home|' "/etc/default/useradd" && \
     /scripts/bootc-rootfs.sh
+
+# Prepare bootupd
+RUN --mount=type=bind,from=ctx,source=/scripts,target=/scripts \
+    /scripts/bootupd-setup.sh
 
 
 # Set label to identify the image as bootc
