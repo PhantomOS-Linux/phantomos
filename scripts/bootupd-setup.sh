@@ -5,7 +5,7 @@ set -xeuo pipefail
 GRUB_VERSION=$(pacman -Q grub | awk '{print $2}')
 
 # Create base directory for bootupd
-mkdir -p /usr/lib/efi/grub/$GRUB_VERSION/arch
+mkdir -p /usr/lib/efi/grub/$GRUB_VERSION/EFI/arch
 
 build_grub() {
     local target=$1
@@ -35,8 +35,8 @@ build_grub() {
 }
 
 
-build_grub "x86_64-efi" "/usr/lib/efi/grub/$GRUB_VERSION/arch/grubx64.efi"
-build_grub "i386-efi" "/usr/lib/efi/grub/$GRUB_VERSION/arch/grubia32.efi"
+build_grub "x86_64-efi" "/usr/lib/efi/grub/$GRUB_VERSION/EFI/arch/grubx64.efi"
+build_grub "i386-efi" "/usr/lib/efi/grub/$GRUB_VERSION/EFI/arch/grubia32.efi"
 
 # Generate update metadata
 bootupctl backend generate-update-metadata
