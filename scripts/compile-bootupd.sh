@@ -11,6 +11,7 @@ export CARGO_TARGET_DIR=target
 make
 
 RUST_BACKTRACE=1 cargo test
-make DESTDIR=/output install
-make DESTDIR=/output install-grub-static
-make DESTDIR=/output install-systemd-unit
+make DESTDIR=/output LIBEXECDIR=/usr/lib install
+rm /output/usr/lib/bootupd
+make DESTDIR=/output LIBEXECDIR=/usr/lib install-grub-static
+make DESTDIR=/output LIBEXECDIR=/usr/lib install-systemd-unit
