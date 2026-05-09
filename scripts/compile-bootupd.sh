@@ -12,6 +12,7 @@ make
 
 RUST_BACKTRACE=1 cargo test
 make DESTDIR=/output LIBEXECDIR=/usr/lib install
+rm /output/usr/bin/bootupctl
 mv /output/usr/lib/bootupd /output/usr/bin/bootupctl
 make DESTDIR=/output LIBEXECDIR=/usr/lib install-grub-static
 make DESTDIR=/output LIBEXECDIR=/usr/lib install-systemd-unit
