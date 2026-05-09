@@ -52,6 +52,10 @@ RUN --mount=type=bind,from=ctx,source=/scripts,target=/scripts \
     sed -i 's|^HOME=.*|HOME=/var/home|' "/etc/default/useradd" && \
     /scripts/bootc-rootfs.sh
 
+# Prepare bootupd
+RUN --mount=type=bind,from=ctx,source=/scripts,target=/scripts \
+    /scripts/bootupd-setup.sh
+
 
 # Set label to identify the image as bootc
 LABEL containers.bootc 1
