@@ -9,17 +9,25 @@ COPY rootfs/ /
 FROM docker.io/archlinux/archlinux:latest AS base
 
 # Install dependencies for building bootc
-FROM base AS builder
-RUN pacman -Syu --noconfirm make git rust go-md2man ostree glibc pkgconf
+FROM base AS builder-bootc
+RUN pacman -Syu --noconfirm make git rust go-md2man ostree glibc pkgconf grub gcc-libs efibootmgr
 
 WORKDIR /home/build
 RUN --mount=type=bind,from=ctx,source=/scripts,target=/scripts \
     /scripts/compile-bootc.sh
 
+FROM base AS builder-bootupd
+RUN pacman -Syu --noconfirm make git rust go-md2man ostree glibc pkgconf grub gcc-libs efibootmgr
+WORKDIR /home/build
+RUN --mount=type=bind,from=ctx,source=/scripts,target=/scripts \
+    /scripts/compile-bootupd.sh
+
 # Right System
 FROM base AS system
 # Copy bootc
-COPY --from=builder /output /
+COPY --from=builder-bootc /output /
+# Copy bootupd
+COPY --from=builder-bootupd /output /
 
 RUN grep "= */var" /etc/pacman.conf | sed "/= *\/var/s/.*=// ; s/ //" | xargs -n1 sh -c 'mkdir -p "/usr/lib/sysimage/$(dirname $(echo $1 | sed "s@/var/@@"))" && mv -v "$1" "/usr/lib/sysimage/$(echo "$1" | sed "s@/var/@@")"' '' && \
     sed -i -e "/= *\/var/ s/^#//" -e "s@= */var@= /usr/lib/sysimage@g" -e "/DownloadUser/d" /etc/pacman.conf
