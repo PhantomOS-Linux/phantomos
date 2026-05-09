@@ -10,14 +10,14 @@ FROM docker.io/archlinux/archlinux:latest AS base
 
 # Install dependencies for building bootc
 FROM base AS builder-bootc
-RUN pacman -Syu --noconfirm make git rust go-md2man ostree glibc pkgconf grub gcc-libs efibootmgr wget
+RUN pacman -Syu --noconfirm make git rust go-md2man ostree glibc pkgconf grub gcc-libs efibootmgr wget patch
 
 WORKDIR /home/build
 RUN --mount=type=bind,from=ctx,source=/scripts,target=/scripts \
     /scripts/compile-bootc.sh
 
 FROM base AS builder-bootupd
-RUN pacman -Syu --noconfirm make git rust go-md2man ostree glibc pkgconf grub gcc-libs efibootmgr wget
+RUN pacman -Syu --noconfirm make git rust go-md2man ostree glibc pkgconf grub gcc-libs efibootmgr wget patch
 WORKDIR /home/build
 RUN --mount=type=bind,from=ctx,source=/scripts,target=/scripts \
     /scripts/compile-bootupd.sh

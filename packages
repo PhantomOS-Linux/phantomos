@@ -11,5 +11,9 @@ skopeo
 dbus
 dbus-glib
 glib2
+grub
+os-prober
+mtools
+efibootmgr
 ostree
 shadow
